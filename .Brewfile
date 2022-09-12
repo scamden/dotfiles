@@ -23,6 +23,7 @@ brew "romkatv/powerlevel10k/powerlevel10k"
 # App casks
 cask "1password"
 cask "alfred"
+cask "backblaze"
 cask "bartender"
 cask "docker"
 cask "figma"

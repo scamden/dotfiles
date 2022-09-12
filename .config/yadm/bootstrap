@@ -10,7 +10,8 @@ if [ "$system_type" = "Darwin" ]; then
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   fi
 
-  if [ -f "$HOMEBREW_BREWFILE" ]; then
+  BREWFILE="${$HOMEBREW_BUNDLE_FILE:-$HOME/Brewfile}"
+  if [ -f "$BREWFILE" ]; then
     echo "Updating homebrew bundle"
     brew bundle --global
   fi
@@ -22,7 +23,7 @@ if [ "$system_type" = "Darwin" ]; then
   # possibly add something here to ensure iTerm2 is installed using Homebrew
   # cask like in the previous example
 
-  if [ -d "$HOME/.iterm2" ]; then
+  if [ -d "$HOME/.config/iterm2" ]; then
     echo "Setting iTerm preference folder"
     defaults write com.googlecode.iterm2 PrefsCustomFolder "$HOME/.config/iterm2"
   fi
@@ -36,9 +37,20 @@ yadm remote set-url origin "git@github.com:scamden/dotfiles.git"
 
 # install omz
 
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
 
 # install omz plugins
 
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+if [ ! -d "$DIRECTORY" ]; then
+  echo "$DIRECTORY does not exist."
+fi
+
+if [ ! -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]; then
+  git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+fi
+if [ ! -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" ]; then
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+fi
+

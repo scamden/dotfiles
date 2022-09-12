@@ -25,7 +25,7 @@
     caa = commit -a --amend -C HEAD
     filelog = log -u
     fl = log -u
-    cm = "!git add -u; git cz"
+    cm = "!git add -u; git cz commit"
 
     ai = add --interactive
 
