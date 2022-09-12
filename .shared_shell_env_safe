@@ -1,0 +1,144 @@
+if [ -f /path/to/some/file ]; then
+  . ~/.shared_shell_env
+fi
+
+
+alias dot='exec $SHELL -l'
+alias pro='code ~/.shared_shell_env'
+alias vi='vim'
+alias ls='ls -lahG'
+alias grep='grep --color=always'
+alias tf=terraform
+
+alias runredis="redis-server &"
+alias runpg="brew services start postgresql"
+
+alias pub="npm publish"
+alias pre-merge="git co --ours package-lock.json && git add package-lock.json && git mergetool"
+alias post-merge-no-push="find . -name '*.orig' -delete && npm i && git add . && git commit --no-edit"
+alias post-merge="post-merge-no-push && git push"
+
+alias uuid="ruby -e \"require 'secureRandom'; puts SecureRandom.uuid\""
+alias jestdebugnowatch="node --inspect-brk node_modules/.bin/jest --runInBand --config jest/jest.config.js"
+alias jestdebug="jestdebugnowatch --watch"
+
+alias rx="rushx"
+alias rup="rush update --max-install-attempts 1"
+alias rub="rush build"
+alias rubw="rush build:watch"
+alias rerub="rush rebuild"
+alias rut="rush test"
+alias ruti="rush test:integration"
+alias rutw="rush test:watch"
+alias rad="rush add -m"
+
+alias here='echo "$(jq .name < package.json | sed 's/\\\"//g')"'
+alias tohere='echo "--to=$(here)"'
+
+PATH=$PATH:/usr/local/git/bin/
+PATH=$PATH:~/bin
+export PATH
+
+# nvm
+
+export NVM_DIR="$HOME/.nvm"
+NVM_BREW_DIR="$(brew --prefix nvm)"
+[ -s "$NVM_BREW_DIR/nvm.sh" ] && \. "$NVM_BREW_DIR/nvm.sh" # This loads nvm
+[ -s "$NVM_BREW_DIR/bash_completion" ] && \. "$NVM_BREW_DIR/bash_completion"  # This loads nvm bash_completion
+
+export SHELL=`which zsh`
+
+alias rm='trash'
+
+alias renpm='rm -rf node_modules && npm i'
+
+alias ls='ls -la'
+alias rx="rushx"
+
+
+alias g="git"
+# version that squashes base commits below
+alias pub="npm publish && git p"
+alias prm="pre-merge"
+alias psm="post-merge"
+alias jestdebugnowatch="node --inspect-brk node_modules/.bin/jest --runInBand --config jest/jest.config.js"
+alias jestdebug="jestdebugnowatch --watch"
+alias nrd="npm run dev"
+alias nrc="npm run compile"
+alias nrt="npm run test"
+
+function pam() {
+  git pr
+
+  if [ $? -eq 0 ]; then
+    git push
+    echo '### Branch Pushed ######################################################'
+  else
+    echo "!!! Error merging origin/dev.  Branch was not pushed."
+  fi
+}
+
+# Merges the current auto-merge branch with origin/staging
+function mos() {
+
+  echo ">>> Fetching the latest"
+  git rev-parse --symbolic-full-name --abbrev-ref HEAD | grep master > /dev/null
+  if [ $? -gt 0 ]; then
+    git fetch
+    echo ">>> Merging auto-merge branch with origin/staging"
+    git merge --no-edit origin/staging
+  else
+    echo "You are on a masterly branch. Don't merge you baddie."
+    return 1
+  fi
+}
+
+
+runForNestedPackages() {
+  find . -not -path \*node_modules\* -name package.json | while read file; do dir=`dirname $file`; (cd $dir; $1;) done
+}
+
+versionClient() {
+ git pr && (cd `git rev-parse --show-toplevel`/src/client && mkdir .git; npm version $1; rmdir .git)
+}
+
+getLastDemoDate() {
+  d=`date -v-fri`
+  if [ "$d" = "`date`" ]; then
+    d=`date -v-7d`
+  fi
+  echo $d | awk '{ print $2, $3, "13:00:00 EDT", $6}' 
+}
+getGithubName() {
+  awk '/name = / { $1=$2=""; gsub(/ /, ""); print}' < ~/.gitconfig
+}
+getGithubEmail() {
+  awk '/email = / { $1=$2=""; gsub(/ /, ""); print}' < ~/.gitconfig
+}
+getGithubAuthor() {
+  echo `getGithubName` \<`getGithubEmail`\>
+}
+commitsSinceLastDemos() {
+  git log --all --after=\"`getLastDemoDate`\"  --author=\"`getGithubAuthor`\" 
+}
+
+list_untracked() {
+  if ! [ -d .git ]; then
+    (cd .. && list_untracked)
+  else
+    git ls-files --others --exclude-standard
+  fi
+}
+
+push() {
+  untracked=`list_untracked`
+  if ! [ -z "$untracked" ]; then
+    echo "untracked files: $untracked"
+    echo "push anyway (y/N)? \\c"
+    if read ans && [ "$ans" = "y" ]; then
+      git push
+    fi
+  else
+    git push
+  fi
+}
