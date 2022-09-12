@@ -1,5 +1,7 @@
 export HOMEBREW_BREWFILE="$HOME/.Brewfile"
 
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
 if [ -f /path/to/some/file ]; then
   . ~/.shared_shell_env
 fi
