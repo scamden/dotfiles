@@ -2,3 +2,4 @@ cz-conventional-changelog
 pnpm
 typescript
 validate-commit-msg
+turbo@1.2.9

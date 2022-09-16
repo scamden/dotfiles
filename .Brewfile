@@ -31,6 +31,7 @@ cask "firefox"
 cask "google-chrome"
 cask "image2icon"
 cask "iterm2"
+cask "loom"
 cask "menumeters"
 cask "notion"
 cask "postman"
@@ -64,3 +65,7 @@ mas "EpocCamViewer", id: 736008948
 # Manual Apps (for documentation)
 # hx edit
 # muteme-client
+
+# watershed things
+cask "tailscale"
+cask "tableplus"

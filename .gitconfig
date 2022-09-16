@@ -145,3 +145,6 @@
 [blame]
 	ignoreRevsFile = .git-blame-ignore-revs
 	ignorerevsfile = .git-blame-ignore-revs
+
+[include]
+  path = ~/watershed/ghg/scripts/.gitconfig ; include by absolute path

@@ -6,3 +6,4 @@ fpath=(~/.zsh $fpath)
 autoload -Uz compinit && compinit
 
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+. "$HOME/.cargo/env"

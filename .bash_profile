@@ -5,3 +5,4 @@ if [ -f $(brew --prefix)/etc/bash_completion ]; then
 fi
 export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
+. "$HOME/.cargo/env"
