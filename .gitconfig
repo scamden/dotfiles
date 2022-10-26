@@ -3,12 +3,6 @@
 	email = rusty.camden@gmail.com
 [core]
 	#excludesfile = /Users/scamden/.gitignore_global
-[difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
-[mergetool "sourcetree"]
-	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
 [alias]
 
     pr = pull --rebase
@@ -108,6 +102,9 @@
 
     #subtree add
     sba = "!f() { git subtree add --prefix $2 $1 master --squash; }; f"
+
+    pub = publish
+    purge = "!git delete-squashed-branches; git delete-merged-branches; git fetch --prune --all"
 
 [color]
     ui = true

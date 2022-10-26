@@ -1,5 +1,5 @@
 cz-conventional-changelog
 pnpm
-typescript
+typescript@4.5.5
 validate-commit-msg
 turbo@1.2.9
