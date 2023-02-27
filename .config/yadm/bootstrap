@@ -1,6 +1,21 @@
-#!/bin/bash
+#!/bin/zsh
 
 system_type=$(uname -s)
+
+# Here we make sure YADM & VSCode play nice by making sure '**' is in
+# $GIT_DIR/info/exclude
+yadm gitconfig advice.addIgnoredFile false
+set +x
+GIT_DIR_STR=$(yadm enter env | grep GIT_DIR)
+eval "$GIT_DIR_STR"
+set -x
+echo gitdir $GIT_DIR_STR
+grep "^\*\*$" $GIT_DIR/info/exclude > /dev/null
+excluded=$?
+if [[ $excluded -ne O ]]; then
+  echo "**" >> $GIT_DIR/info/exclude
+fi
+
 
 if [ "$system_type" = "Darwin" ]; then
 

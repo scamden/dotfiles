@@ -1,8 +1,10 @@
 [user]
 	name = Sterling Camden
 	email = rusty.camden@gmail.com
-[core]
-	#excludesfile = /Users/scamden/.gitignore_global
+	signingkey = ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCvwSUXfTu9LpZS11J5Ppsetn67OTTXDeuLFxZU5ZomBSTsAX6PQDGxuadLry0ekNXuPCkPr2zdVY5vjBO9D8qL+lLS6vg+jqjA/XdgdgIkh209M4luUdmm15aOZzZzm/Dz21SbNdWQG54r/6xzSVHzN7ZtZ7RuhPwNSAVMg3Rb2pO5ha3khF1mMeeZKV9w36jXMlGDhPmg9gBmhFTmhdoM7h9KXUx4K2VyjK4WoXYk3yfk133/BBMkamH0e3gU+Sd7EPeq1IfgBQCbsxf3PHCwrrTxrSxRezjlT4O3VWSmNIE9WeT5Y/49gFT48cUecX9YN8nagQfDG04KCa3gDmfa+OJ6QXgQbzeS4ntCRImREZNcbatALMSQrMbSrBhDXed0Ua9eq4Xf61Q07IFQjJkOqDN+QNySpgsbIdmKkIf0KDx3KamBCMjqzYrLC7yOZPmrBrEwbRYdIhOu7DcpcAa2Iw55NAZAuz95deuVWEc17GfOzBzUjrbHPlhbzSa90HW2rymaAWaL+wCkk2X38f1EBsE4EblQvJZhGxRGKYW+/vuZ+PHVH6gDASmm6H9DQvOa+6rgAN2FBmOa+EgkyXJf8mY4NxAIgqBVSUVGhaMMzOQjHbTmSfjZOppVGSuoVLMdWg4jkL+fHI+2w04hzET6XPfVgfo5C7abTKVVq1OiNQ==
+
+[include]
+  path = ~/watershed/ghg/scripts/.gitconfig ; include by absolute path
 [alias]
 
     pr = pull --rebase
@@ -19,7 +21,7 @@
     caa = commit -a --amend -C HEAD
     filelog = log -u
     fl = log -u
-    cm = "!git add -u; git cz commit"
+    cm = "!git add -u; git cz commit" 
 
     ai = add --interactive
 
@@ -103,8 +105,20 @@
     #subtree add
     sba = "!f() { git subtree add --prefix $2 $1 master --squash; }; f"
 
-    pub = publish
+    publish = "!git push --force-with-lease -u origin +$(git branch --show-current)"
+    
+
+    delete-merged-branches = "!git checkout main && git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
+
+    delete-squashed-branches = "!git checkout -q main && git for-each-ref refs/heads/ \"--format=%(refname:short)\" | while read branch; do mergeBase=$(git merge-base main $branch) && [[ $(git cherry main $(git commit-tree $(git rev-parse $branch^{tree}) -p $mergeBase -m _)) == \"-\"* ]] && git branch -D $branch; done"
+    
     purge = "!git delete-squashed-branches; git delete-merged-branches; git fetch --prune --all"
+
+    pub = publish
+
+    pr-branch = "!git stash push -m 'temp-checkout' 2> /dev/null; git co main; git pr; git co -b sterling-$(generate-docker-name); (git stash show -p stash@{0} | grep \"temp-checkout\" && (git stash apply stash^{/temp-checkout}; git stash drop 0)) 2> /dev/null ;"
+    prb = pr-branch
+    
 
 [color]
     ui = true
@@ -130,17 +144,28 @@
 [push]
     default = upstream
 [merge]
-	tool = opendiff
-
-
+	tool = vscode
+  autoStash = true
 
 [filter "media"]
 	clean = git-media-clean %f
 	smudge = git-media-smudge %f
-
-
+[diff]
+  tool = vscode
+[difftool "vscode"]
+  cmd = code --wait --diff $LOCAL $REMOTE
+[mergetool "vscode"]
+  cmd = code --wait $MERGED
+[core]
+	editor = code --wait
+	#excludesfile = /Users/scamden/.gitignore_global
 [blame]
 	# ignoreRevsFile = .git-blame-ignore-revs
-
-[include]
-  path = ~/watershed/ghg/scripts/.gitconfig ; include by absolute path
+[rebase]
+	autoStash = true
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+[commit]
+	gpgsign = true

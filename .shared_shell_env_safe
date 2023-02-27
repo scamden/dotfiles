@@ -2,13 +2,17 @@ export HOMEBREW_BUNDLE_FILE="$HOME/.Brewfile"
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
-if [ -f /path/to/some/file ]; then
+if [ -f ~/.shared_shell_env ]; then
   . ~/.shared_shell_env
+fi
+
+if [ -f ~/.secrets ]; then
+  . ~/.secrets
 fi
 
 
 alias dot='exec $SHELL -l'
-alias pro='code ~/.shared_shell_env'
+alias pro='code ~/.shared_shell_env_safe'
 alias vi='vim'
 alias ls='ls -lahG'
 alias grep='grep --color=always'
@@ -164,4 +168,8 @@ eval "$(nodenv init -)"
 # ghg script completions
 source ~/watershed/ghg/scripts/completions.sh
 
-export WS_USER=sterling
+export WS_USER=sterling#compdef gt
+
+export LINT_ON_COMMIT=false
+
+

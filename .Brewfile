@@ -4,6 +4,7 @@ tap "homebrew/cask-fonts"
 tap "homebrew/core"
 tap "homebrew/services"
 tap "romkatv/powerlevel10k"
+tap "withgraphite/tap"
 
 # Brew CLI apps
 brew "python"
@@ -11,6 +12,9 @@ brew "awscli"
 brew "circleci"
 brew "commitizen"
 brew "jq"
+brew "git"
+brew "gh"
+brew "graphviz"
 brew "nvm"
 brew "parallel"
 brew "postgresql@12"
@@ -19,9 +23,11 @@ brew "terraform"
 brew "trash"
 brew "yadm"
 brew "romkatv/powerlevel10k/powerlevel10k"
+brew "withgraphite/tap/graphite"
 
 # App casks
 cask "1password"
+cask "1password/tap/1password-cli"
 cask "alfred"
 cask "backblaze"
 cask "bartender"
@@ -49,9 +55,16 @@ cask "font-hack-nerd-font"
 cask "font-inconsolata-for-powerline"
 cask "font-menlo-for-powerline"
 
+# watershed things
+cask "tailscale"
+cask "tableplus"
+cask "tad"
+
+brew "mypy"
+# end watershed things
+
 # Mac App Store apps
 mas "Meeter", id: 1510445899
-mas "Xcode", id: 497799835
 mas "Magnet", id: 441258766
 mas "MainStage", id: 634159523
 mas "Keynote", id: 409183694
@@ -67,7 +80,5 @@ mas "EpocCamViewer", id: 736008948
 # Manual Apps (for documentation)
 # hx edit
 # muteme-client
+# xcode
 
-# watershed things
-cask "tailscale"
-cask "tableplus"
