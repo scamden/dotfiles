@@ -19,7 +19,7 @@ export DEFAULT_USER=scamden
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 # ZSH_THEME="agnoster"
-# ZSH_THEME="powerlevel10k/powerlevel10k"
+ZSH_THEME="powerlevel10k/powerlevel10k"
 source $(brew --prefix)/opt/powerlevel10k/powerlevel10k.zsh-theme
 
 

@@ -75,6 +75,8 @@ alias nrd="npm run dev"
 alias nrc="npm run compile"
 alias nrt="npm run test"
 
+# alias code='code-insiders'
+
 function pam() {
   git pr
 
@@ -154,7 +156,7 @@ push() {
 
 #### watershed ####
 # postgresql
-export PATH="$(brew --prefix postgresql@11)/bin:$PATH"
+export PATH="$(brew --prefix postgresql@14)/bin:$PATH"
 
 # pyenv
 export PYENV_ROOT="$HOME/.pyenv"
@@ -172,4 +174,6 @@ export WS_USER=sterling#compdef gt
 
 export LINT_ON_COMMIT=false
 
-
+export NEXT_PUBLIC_DASHBOARD_HOST=http://localhost:3000
+    
+alias test='scripts/jstest'
