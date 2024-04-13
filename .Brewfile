@@ -61,6 +61,7 @@ cask "tableplus"
 cask "tad"
 
 brew "mypy"
+brew "duckdb"
 # end watershed things
 
 # Mac App Store apps

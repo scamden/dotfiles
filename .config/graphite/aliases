@@ -15,7 +15,7 @@ ca modify
 cc modify --commit
 dss submit
 bs submit
-ss submit --stack
+ss submit --stack -n
 uss submit --stack
 rs repo sync
 bco checkout
@@ -41,3 +41,5 @@ be modify --interactive-rebase
 btr track
 but untrack
 dsm merge
+com modify --commit -m
+cm modify --commit -am

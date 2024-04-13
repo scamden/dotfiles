@@ -155,25 +155,17 @@ push() {
 
 
 #### watershed ####
-# postgresql
-export PATH="$(brew --prefix postgresql@14)/bin:$PATH"
+source ~/watershed/ghg/scripts/.profile
 
-# pyenv
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
-eval "$(pyenv init --path)"
-
-# nodenv
-eval "$(nodenv init -)"
-
-# ghg script completions
-source ~/watershed/ghg/scripts/completions.sh
-
-export WS_USER=sterling#compdef gt
+export WS_USER=sterling
 
 export LINT_ON_COMMIT=false
 
 export NEXT_PUBLIC_DASHBOARD_HOST=http://localhost:3000
+
     
-alias test='scripts/jstest'
+alias tst='scripts/jstest'
+alias dev='./scripts/install-deps && ./scripts/db upgrade && ./scripts/dev'
+export NEXT_PUBLIC_WHY_DID_YOU_RENDER=true
+export NODE_OPTONS="--max_old_space_size=8192"
+
