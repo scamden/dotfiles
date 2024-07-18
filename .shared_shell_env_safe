@@ -154,18 +154,3 @@ push() {
 }
 
 
-#### watershed ####
-source ~/watershed/ghg/scripts/.profile
-
-export WS_USER=sterling
-
-export LINT_ON_COMMIT=false
-
-export NEXT_PUBLIC_DASHBOARD_HOST=http://localhost:3000
-
-    
-alias tst='scripts/jstest'
-alias dev='./scripts/install-deps && ./scripts/db upgrade && ./scripts/dev'
-export NEXT_PUBLIC_WHY_DID_YOU_RENDER=true
-export NODE_OPTONS="--max_old_space_size=8192"
-

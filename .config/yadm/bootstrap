@@ -5,11 +5,7 @@ system_type=$(uname -s)
 # Here we make sure YADM & VSCode play nice by making sure '**' is in
 # $GIT_DIR/info/exclude
 yadm gitconfig advice.addIgnoredFile false
-set +x
-GIT_DIR_STR=$(yadm enter env | grep GIT_DIR)
-eval "$GIT_DIR_STR"
-set -x
-echo gitdir $GIT_DIR_STR
+GIT_DIR=$HOME/.local/share/yadm/repo.git
 grep "^\*\*$" $GIT_DIR/info/exclude > /dev/null
 excluded=$?
 if [[ $excluded -ne O ]]; then
@@ -25,10 +21,10 @@ if [ "$system_type" = "Darwin" ]; then
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   fi
 
-  BREWFILE="${$HOMEBREW_BUNDLE_FILE:-$HOME/Brewfile}"
+  BREWFILE="${HOMEBREW_BUNDLE_FILE:-$HOME/.Brewfile}"
   if [ -f "$BREWFILE" ]; then
     echo "Updating homebrew bundle"
-    brew bundle --global
+    brew bundle --file="$BREWFILE"
   fi
 
 fi
@@ -38,9 +34,9 @@ if [ "$system_type" = "Darwin" ]; then
   # possibly add something here to ensure iTerm2 is installed using Homebrew
   # cask like in the previous example
 
-  if [ -d "$HOME/.config/iterm2" ]; then
+  if [ -d "$HOME/.config/iterm" ]; then
     echo "Setting iTerm preference folder"
-    defaults write com.googlecode.iterm2 PrefsCustomFolder "$HOME/.config/iterm2"
+    defaults write com.googlecode.iterm2 PrefsCustomFolder "$HOME/.config/iterm"
   fi
 
 fi
@@ -49,23 +45,4 @@ nvm install node
 
 echo "Updating the yadm repo origin URL"
 yadm remote set-url origin "git@github.com:scamden/dotfiles.git"
-
-# install omz
-
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-fi
-
-# install omz plugins
-
-if [ ! -d "$DIRECTORY" ]; then
-  echo "$DIRECTORY does not exist."
-fi
-
-if [ ! -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]; then
-  git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-fi
-if [ ! -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" ]; then
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-fi
 
