@@ -25,7 +25,7 @@ brew "zsh-syntax-highlighting"
 
 # App casks
 cask "1password"
-cask "1password/tap/1password-cli"
+cask "1password-cli"
 cask "backblaze"
 cask "bartender"
 cask "notion-calendar"
@@ -46,6 +46,7 @@ cask "the-unarchiver"
 cask "visual-studio-code"
 cask "zoom"
 cask "chatgpt"
+cask "signal"
 
 # Font casks
 cask "font-hack-nerd-font"
