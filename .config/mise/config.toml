@@ -1,0 +1,12 @@
+[tools]
+node = "24.14.0"
+pnpm = "10.33.0"
+python = "3.9.23"
+"npm:typescript" = "4.8.4"
+"npm:turbo" = "1.6.2"
+"npm:cz-conventional-changelog" = "latest"
+"npm:validate-commit-msg" = "latest"
+"npm:@scamden/docker-name-generator" = "latest"
+
+[settings]
+idiomatic_version_file_enable_tools = ["node", "python", "ruby"]

@@ -3,7 +3,7 @@ tap "homebrew/services"
 tap "withgraphite/tap"
 
 # Brew CLI apps
-brew "python"
+brew "python@3.9"
 brew "awscli"
 brew "circleci"
 brew "commitizen"
@@ -11,9 +11,9 @@ brew "jq"
 brew "git"
 brew "gh"
 brew "graphviz"
-brew "nvm"
+brew "mise"
 brew "parallel"
-brew "postgresql@12"
+brew "postgresql"
 brew "redis"
 brew "terraform"
 brew "trash"
@@ -22,6 +22,8 @@ brew "powerlevel10k"
 brew "withgraphite/tap/graphite"
 brew "zsh-autosuggestions"
 brew "zsh-syntax-highlighting"
+brew "git-machete"
+brew "fzf"
 
 # App casks
 cask "1password"
@@ -47,24 +49,25 @@ cask "visual-studio-code"
 cask "zoom"
 cask "chatgpt"
 cask "signal"
+cask "iina"
+cask "cursor"
+
+#work
+cask "tableplus"
 
 # Font casks
 cask "font-hack-nerd-font"
 cask "font-inconsolata-for-powerline"
 cask "font-menlo-for-powerline"
 
-# watershed things
-cask "tailscale"
-cask "tableplus"
-cask "tad"
+# valence things
+cask "viscosity"
 
-brew "mypy"
-brew "duckdb"
-# end watershed things
+brew "glab"
+# end valence things
 
 # Mac App Store apps
 mas "Meeter", id: 1510445899
-mas "Magnet", id: 441258766
 mas "MainStage", id: 634159523
 mas "Keynote", id: 409183694
 mas "iMovie", id: 408981434

@@ -20,7 +20,9 @@ export DEFAULT_USER=scamden
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 # ZSH_THEME="agnoster"
 # ZSH_THEME="powerlevel10k/powerlevel10k"
-source $(brew --prefix)/share/powerlevel10k/powerlevel10k.zsh-theme
+if [ -x /opt/homebrew/bin/brew ]; then
+  source "$(/opt/homebrew/bin/brew --prefix)/share/powerlevel10k/powerlevel10k.zsh-theme"
+fi
 
 
 # Set list of themes to pick from when loading at random
@@ -117,12 +119,8 @@ unsetopt share_history
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-export PNPM_HOME="/Users/scamden/Library/pnpm"
-export PATH="$PNPM_HOME:$PATH"
 
 ###-begin-gt-completions-###
 #
@@ -142,3 +140,18 @@ _gt_yargs_completions()
 }
 compdef _gt_yargs_completions gt
 ###-end-gt-completions-###
+
+if [[ -o interactive && -t 0 ]] && command -v fzf >/dev/null 2>&1; then
+  source <(fzf --zsh)
+fi
+
+# bun completions
+[ -s "/Users/scamden/.bun/_bun" ] && source "/Users/scamden/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
+fi

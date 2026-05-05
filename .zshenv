@@ -1,8 +1,13 @@
-. ~/.shared_shell_env_safe
+# zsh reads this for every shell, including non-interactive scripts.
+# Keep it limited to cheap, deterministic environment setup.
+export HOMEBREW_BUNDLE_FILE="$HOME/.Brewfile"
 
-zstyle ':completion:*:*:git:*' script ~/.zsh/git-completion.bash
-fpath=(~/.zsh $fpath)
-
-autoload -Uz compinit && compinit
-
-export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+path=(
+  /opt/homebrew/bin
+  /opt/homebrew/sbin
+  "$HOME/.local/share/mise/shims"
+  "$HOME/.local/bin"
+  "$HOME/bin"
+  $path
+)
+typeset -U path PATH

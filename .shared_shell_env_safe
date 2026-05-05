@@ -1,6 +1,8 @@
 export HOMEBREW_BUNDLE_FILE="$HOME/.Brewfile"
 
-eval "$(/opt/homebrew/bin/brew shellenv)"
+if [ -x /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
 
 if [ -f ~/.shared_shell_env ]; then
   . ~/.shared_shell_env
@@ -45,16 +47,76 @@ alias tohere='echo "--to=$(here)"'
 
 PATH=$PATH:/usr/local/git/bin/
 PATH=$PATH:~/bin
+PATH=/opt/homebrew/opt/postgresql@17/bin:$PATH
+PATH="$HOME/.local/bin:$PATH"
 export PATH
+export GIT_BRANCH_PREFIX="sterling"
+function newbranch() {
+  ~/scripts/prefixed_git_branch.sh "$1" && git machete add --yes
+}
 
-# nvm
+# choose_branch() {
+#   git branch --sort=-committerdate | fzf --header "Checkout Recent Branch" --preview "git diff {1} --color=always" --pointer="" | sed 's/^[* ]*//'
+# }
 
-export NVM_DIR="$HOME/.nvm"
-NVM_BREW_DIR="$(brew --prefix nvm)"
-[ -s "$NVM_BREW_DIR/nvm.sh" ] && \. "$NVM_BREW_DIR/nvm.sh" # This loads nvm
-[ -s "$NVM_BREW_DIR/bash_completion" ] && \. "$NVM_BREW_DIR/bash_completion"  # This loads nvm bash_completion
+# choose_managed_branch() {
+#   git machete list managed | fzf --header "Checkout Recent Branch" --preview "git diff {1} --color=always" --pointer=""
+# }
 
-export SHELL=`which zsh`
+# function co() {
+#    if [ -n "$1" ]; then
+#     branch="$1"
+#   else
+#     branch=$(choose_branch)
+#   fi
+#   if [ -n "$branch" ]; then
+#     git checkout "$branch"
+#     print -s "git checkout \"$branch\""
+#   fi
+# }
+
+choose_machete_branch() {
+  git machete status --color=always --squash-merge-detection=none \
+  | awk '
+    {
+      line = $0
+      plain = $0
+      gsub(/\x1B\[[0-9;]*[mK]/, "", plain)
+      sub(/^[[:space:]]+/, "", plain)
+      sub(/^[|│├└─ ]+/, "", plain)
+      sub(/^[omx?]-/, "", plain)
+
+      branch = plain
+      sub(/[[:space:]].*$/, "", branch)
+
+      if (branch != "") {
+        print branch "\t" line
+      }
+    }
+  ' \
+  | fzf --ansi --tac \
+        --delimiter=$'\t' \
+        --with-nth=2.. \
+        --header="Checkout (git machete tree)" \
+        --preview='git diff {1} --color=always' \
+  | cut -f1
+}
+
+function co() {
+  local branch
+  if [ -n "$1" ]; then
+    branch="$1"
+  else
+    # swap this line back to choose_branch if you want the old mode sometimes
+    branch="$(choose_machete_branch)"
+  fi
+
+  if [ -n "$branch" ]; then
+    git checkout "$branch"
+    print -s "git checkout \"$branch\""
+  fi
+}
+
 
 alias rm='trash'
 
@@ -84,7 +146,7 @@ function pam() {
     git push
     echo '### Branch Pushed ######################################################'
   else
-    echo "!!! Error merging origin/dev.  Branch was not pushed."
+    echo "!!! Error merging origin/dev. Branch was not pushed."
   fi
 }
 
@@ -98,7 +160,7 @@ function mos() {
     echo ">>> Merging auto-merge branch with origin/staging"
     git merge --no-edit origin/staging
   else
-    echo "You are on a masterly branch. Don't merge you baddie."
+    echo "You are on a masterly branch. Don't merge."
     return 1
   fi
 }
@@ -154,3 +216,4 @@ push() {
 }
 
 
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
