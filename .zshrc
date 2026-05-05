@@ -1,3 +1,13 @@
+# Some tools start zsh as interactive without a terminal attached. In that
+# mode, skip prompt/completion UI that expects job control, zle, and cache writes.
+if [[ ! -t 0 || ! -t 1 ]]; then
+  . ~/.shared_shell_env_safe
+  if command -v mise >/dev/null 2>&1; then
+    eval "$(mise activate zsh)"
+  fi
+  return
+fi
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
