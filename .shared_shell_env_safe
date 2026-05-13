@@ -51,8 +51,86 @@ PATH=/opt/homebrew/opt/postgresql@17/bin:$PATH
 PATH="$HOME/.local/bin:$PATH"
 export PATH
 export GIT_BRANCH_PREFIX="sterling"
+
+_newbranch_ensure_local_trunk_branch() {
+  local branch="$1"
+  if git show-ref --verify --quiet "refs/heads/$branch"; then
+    echo "$branch"
+    return 0
+  fi
+
+  if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+    git branch --track "$branch" "origin/$branch" >/dev/null && echo "$branch"
+    return $?
+  fi
+
+  return 1
+}
+
+_newbranch_infer_machete_trunk_branch() {
+  local remote_head candidate branch
+  remote_head="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null)"
+  if [ -n "$remote_head" ]; then
+    candidate="${remote_head#origin/}"
+    if _newbranch_ensure_local_trunk_branch "$candidate"; then
+      return 0
+    fi
+  fi
+
+  for branch in main master; do
+    if git show-ref --verify --quiet "refs/heads/$branch"; then
+      echo "$branch"
+      return 0
+    fi
+  done
+
+  for branch in main master; do
+    if _newbranch_ensure_local_trunk_branch "$branch"; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+_newbranch_initialize_machete_layout_if_missing() {
+  local machete_file current_branch trunk
+  machete_file="$(git rev-parse --git-path machete 2>/dev/null)" || return 0
+
+  if [ -s "$machete_file" ]; then
+    return 0
+  fi
+
+  current_branch="$(git branch --show-current)"
+  if [ -z "$current_branch" ]; then
+    echo "Cannot initialize git machete layout from detached HEAD."
+    return 1
+  fi
+
+  trunk="$(_newbranch_infer_machete_trunk_branch)"
+  if [ -z "$trunk" ]; then
+    echo "Cannot infer trunk branch for git machete. Expected origin/HEAD, main, or master."
+    return 1
+  fi
+
+  git machete add --as-root --yes "$trunk" || return $?
+
+  if [ "$current_branch" != "$trunk" ]; then
+    git machete add --onto="$trunk" --yes "$current_branch" || return $?
+  fi
+}
+
 function newbranch() {
-  ~/scripts/prefixed_git_branch.sh "$1" && git machete add --yes
+  local parent_branch
+  parent_branch="$(git branch --show-current)"
+  if [ -z "$parent_branch" ]; then
+    echo "Cannot create a machete branch from detached HEAD."
+    return 1
+  fi
+
+  _newbranch_initialize_machete_layout_if_missing \
+    && ~/scripts/prefixed_git_branch.sh "$1" \
+    && git machete add --onto="$parent_branch" --yes
 }
 
 # choose_branch() {

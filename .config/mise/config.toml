@@ -10,3 +10,13 @@ python = "3.9.23"
 
 [settings]
 idiomatic_version_file_enable_tools = ["node", "python", "ruby"]
+
+[tasks."agent:skills"]
+description = "Install agent skills for Codex, Claude Code, and Cursor"
+run = """
+npx --yes skills@latest add mattpocock/skills -g -a codex -a claude-code -a cursor --skill '*' -y
+npx --yes skills@latest add git@github.com:scamden/personal-agent-work.git -g -a codex -a claude-code -a cursor --skill '*' -y
+"""
+
+[hooks]
+postinstall = { task = "agent:skills" }
