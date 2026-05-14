@@ -1,0 +1,87 @@
+#!/bin/sh
+
+ensure_local_trunk_branch() {
+  branch="$1"
+  if git show-ref --verify --quiet "refs/heads/$branch"; then
+    echo "$branch"
+    return 0
+  fi
+
+  if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+    git branch --track "$branch" "origin/$branch" >/dev/null && echo "$branch"
+    return $?
+  fi
+
+  return 1
+}
+
+infer_machete_trunk_branch() {
+  remote_head="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null)"
+  if [ -n "$remote_head" ]; then
+    candidate="${remote_head#origin/}"
+    if ensure_local_trunk_branch "$candidate"; then
+      return 0
+    fi
+  fi
+
+  for branch in main master; do
+    if git show-ref --verify --quiet "refs/heads/$branch"; then
+      echo "$branch"
+      return 0
+    fi
+  done
+
+  for branch in main master; do
+    if ensure_local_trunk_branch "$branch"; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+initialize_machete_layout_if_missing() {
+  machete_file="$(git rev-parse --git-path machete 2>/dev/null)" || return 0
+
+  if [ -s "$machete_file" ]; then
+    return 0
+  fi
+
+  current_branch="$(git branch --show-current)"
+  if [ -z "$current_branch" ]; then
+    echo "Cannot initialize git machete layout from detached HEAD."
+    return 1
+  fi
+
+  trunk="$(infer_machete_trunk_branch)"
+  if [ -z "$trunk" ]; then
+    echo "Cannot infer trunk branch for git machete. Expected origin/HEAD, main, or master."
+    return 1
+  fi
+
+  git machete add --as-root --yes "$trunk" || return $?
+
+  if [ "$current_branch" != "$trunk" ]; then
+    git machete add --onto="$trunk" --yes "$current_branch" || return $?
+  fi
+}
+
+if [ -z "$1" ]; then
+  echo "Usage: newbranch <branch-name>"
+  exit 1
+fi
+
+if ! command -v prefixed-git-branch >/dev/null 2>&1; then
+  echo "Cannot find prefixed-git-branch on PATH."
+  exit 1
+fi
+
+parent_branch="$(git branch --show-current)"
+if [ -z "$parent_branch" ]; then
+  echo "Cannot create a machete branch from detached HEAD."
+  exit 1
+fi
+
+initialize_machete_layout_if_missing \
+  && prefixed-git-branch "$1" \
+  && git machete add --onto="$parent_branch" --yes

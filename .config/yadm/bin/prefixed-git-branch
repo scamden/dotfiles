@@ -1,0 +1,17 @@
+#!/bin/sh
+
+if [ -z "$1" ]; then
+  echo "Usage: prefixed-git-branch <branch-name>"
+  exit 1
+fi
+
+prefix="${GIT_BRANCH_PREFIX:-}"
+if [ -n "$prefix" ]; then
+  prefix="${prefix}-"
+fi
+
+date_stamp="$(date +%Y%m%d)"
+branch_name="$1--${prefix}${date_stamp}"
+
+git checkout -b "$branch_name" || exit $?
+echo "Created branch: $branch_name"

@@ -48,6 +48,31 @@ else
   echo "mise is not installed; install it with Homebrew and rerun bootstrap" >&2
 fi
 
+install_local_bin_symlink() {
+  local source_path="$1"
+  local target_path="$2"
+
+  mkdir -p "$(dirname "$target_path")"
+
+  if [ -L "$target_path" ]; then
+    if [ "$(readlink "$target_path")" = "$source_path" ]; then
+      return 0
+    fi
+
+    ln -sfn "$source_path" "$target_path"
+    return $?
+  fi
+
+  if [ -e "$target_path" ]; then
+    echo "Skipping $target_path; expected symlink target but found an existing file." >&2
+    return 0
+  fi
+
+  ln -s "$source_path" "$target_path"
+}
+
+install_local_bin_symlink "$HOME/.config/yadm/bin/newbranch" "$HOME/.local/bin/newbranch"
+install_local_bin_symlink "$HOME/.config/yadm/bin/prefixed-git-branch" "$HOME/.local/bin/prefixed-git-branch"
+
 echo "Updating the yadm repo origin URL"
 yadm remote set-url origin "git@github.com:scamden/dotfiles.git"
-
