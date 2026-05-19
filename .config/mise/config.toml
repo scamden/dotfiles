@@ -9,6 +9,7 @@ python = "3.9.23"
 "npm:@scamden/docker-name-generator" = "latest"
 
 [settings]
+experimental = true
 idiomatic_version_file_enable_tools = ["node", "python", "ruby"]
 
 [tasks."agent:skills"]
