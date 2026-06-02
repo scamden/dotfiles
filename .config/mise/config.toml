@@ -11,6 +11,7 @@ python = "3.9.23"
 [settings]
 experimental = true
 idiomatic_version_file_enable_tools = ["node", "python", "ruby"]
+trusted_config_paths = ["/Users/scamden/.codex/worktrees"]
 
 [tasks."agent:skills"]
 description = "Install agent skills for Codex, Claude Code, and Cursor"
