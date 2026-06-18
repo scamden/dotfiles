@@ -16,7 +16,24 @@ trusted_config_paths = ["/Users/scamden/.codex/worktrees"]
 [tasks."agent:skills"]
 description = "Install agent skills for Codex, Claude Code, and Cursor"
 run = """
-npx --yes skills@latest add mattpocock/skills -g -a codex -a claude-code -a cursor --skill '*' -y
+MATT_POCOCK_SKILLS_REF="6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461"
+MATT_POCOCK_SKILLS_DIR="$HOME/.cache/mise/mattpocock-skills"
+if [ ! -d "$MATT_POCOCK_SKILLS_DIR/.git" ]; then
+  git clone --filter=blob:none https://github.com/mattpocock/skills.git "$MATT_POCOCK_SKILLS_DIR"
+fi
+git -C "$MATT_POCOCK_SKILLS_DIR" fetch --depth=1 origin "$MATT_POCOCK_SKILLS_REF"
+git -C "$MATT_POCOCK_SKILLS_DIR" checkout --detach "$MATT_POCOCK_SKILLS_REF"
+npx --yes skills@latest add "$MATT_POCOCK_SKILLS_DIR" -g -a codex -a claude-code -a cursor --skill '*' -y
+
+CAVEMAN_SKILLS_REF="25d22f864ad68cc447a4cb93aefde918aa4aec9f"
+CAVEMAN_SKILLS_DIR="$HOME/.cache/mise/juliusbrussee-caveman"
+if [ ! -d "$CAVEMAN_SKILLS_DIR/.git" ]; then
+  git clone --filter=blob:none https://github.com/JuliusBrussee/caveman.git "$CAVEMAN_SKILLS_DIR"
+fi
+git -C "$CAVEMAN_SKILLS_DIR" fetch --depth=1 origin "$CAVEMAN_SKILLS_REF"
+git -C "$CAVEMAN_SKILLS_DIR" checkout --detach "$CAVEMAN_SKILLS_REF"
+npx --yes skills@latest add "$CAVEMAN_SKILLS_DIR" -g -a codex -a claude-code -a cursor --skill caveman -y
+
 npx --yes skills@latest add git@github.com:scamden/personal-agent-work.git -g -a codex -a claude-code -a cursor --skill '*' -y
 """
 
