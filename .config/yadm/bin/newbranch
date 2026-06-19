@@ -41,7 +41,8 @@ infer_machete_trunk_branch() {
 }
 
 initialize_machete_layout_if_missing() {
-  machete_file="$(git rev-parse --git-path machete 2>/dev/null)" || return 0
+  git_common_dir="$(git rev-parse --git-common-dir 2>/dev/null)" || return 0
+  machete_file="$git_common_dir/machete"
 
   if [ -s "$machete_file" ]; then
     return 0
