@@ -1,5 +1,6 @@
 tap "homebrew/bundle"
 tap "homebrew/services"
+tap "nkzw-tech/tap"
 
 # Brew CLI apps
 brew "python@3.9"
@@ -11,7 +12,6 @@ brew "mise"
 brew "parallel"
 brew "postgresql"
 brew "redis"
-brew "terraform"
 brew "trash"
 brew "yadm"
 brew "powerlevel10k"
@@ -56,6 +56,7 @@ cask "codex"
 cask "bruno"
 cask "tailscale-app"
 cask "claude"
+cask "codiff"
 
 #work
 cask "tableplus"
@@ -69,6 +70,8 @@ cask "font-menlo-for-powerline"
 cask "viscosity"
 
 brew "glab"
+brew "tfenv"
+brew "tgenv"
 # end valence things
 
 # Mac App Store apps

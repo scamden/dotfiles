@@ -152,7 +152,7 @@
     changed = green
     untracked = cyan
 [push]
-    default = upstream
+	default = simple
 [merge]
 	tool = vscode
   autoStash = true
@@ -197,3 +197,5 @@
   prDescriptionIntroStyle = full
 [http "https://gitlab.internal.valence.nl/"]
 	sslVerify = false
+[url "ssh://git@gitlab.internal.valence.nl/"]
+	insteadOf = https://gitlab.internal.valence.nl/

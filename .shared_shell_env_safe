@@ -99,20 +99,9 @@ choose_machete_branch() {
   | cut -f1
 }
 
-function co() {
-  local branch
-  if [ -n "$1" ]; then
-    branch="$1"
-  else
-    # swap this line back to choose_branch if you want the old mode sometimes
-    branch="$(choose_machete_branch)"
-  fi
-
-  if [ -n "$branch" ]; then
-    git checkout "$branch"
-    print -s "git checkout \"$branch\""
-  fi
-}
+if [ -f "$HOME/.config/workon/workon.zsh" ]; then
+  . "$HOME/.config/workon/workon.zsh"
+fi
 
 
 alias rm='trash'
