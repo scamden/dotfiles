@@ -9,9 +9,15 @@ source "${0:h}/workon.zsh"
 }
 
 hook_check="$(
-  WORKON_ROOT=/tmp/root zsh -f -c 'source "$1"; [[ -n "${WORKON_HOOKS_INSTALLED:-}" ]] && print installed' zsh "${0:h}/workon.zsh"
+  WORKON_ROOT=/tmp/root zsh -f -c '
+    source "$1"
+    print -r -- "${WORKON_HOOKS_INSTALLED:-missing}"
+    print -r -- "${chpwd_functions[(r)workon_refresh_visuals]:-missing}"
+    print -r -- "${precmd_functions[(r)workon_refresh_visuals]:-missing}"
+  ' zsh "${0:h}/workon.zsh"
 )"
-[[ "$hook_check" == "installed" ]] || {
+expected_hook_check=$'1\nworkon_refresh_visuals\nworkon_refresh_visuals'
+[[ "$hook_check" == "$expected_hook_check" ]] || {
   echo "expected sourcing workon inside a cockpit to install visual hooks" >&2
   exit 1
 }
@@ -66,6 +72,53 @@ path_expected="$tmpdir/.worktrees/feature-path"
 path_created="$(workon__ensure_worktree feature/path)"
 [[ "$path_created" == "$path_expected" ]] || {
   echo "expected slash branch worktree $path_expected, got $path_created" >&2
+  exit 1
+}
+
+WORKON_ITERM_DYNAMIC_PROFILE_PATH="$tmpdir/workon-generated.json"
+WORKON_ITERM_PROFILE_REGISTRY="$tmpdir/workon-registry.tsv"
+workon__sync_iterm_profiles "$tmpdir" "repo"
+plutil -p "$WORKON_ITERM_DYNAMIC_PROFILE_PATH" >/dev/null
+grep -q "\"Name\": \"workon: repo | feature-one\"" "$WORKON_ITERM_DYNAMIC_PROFILE_PATH" || {
+  echo "expected generated iTerm profiles to include feature-one" >&2
+  exit 1
+}
+grep -q "\"Name\": \"workon: repo | feature/path\"" "$WORKON_ITERM_DYNAMIC_PROFILE_PATH" || {
+  echo "expected generated iTerm profiles to include feature/path" >&2
+  exit 1
+}
+grep -q "\"$path_expected\"" "$WORKON_ITERM_DYNAMIC_PROFILE_PATH" || {
+  echo "expected generated iTerm profiles to bind the exact worktree path" >&2
+  exit 1
+}
+grep -q "\"$path_expected/\\*\"" "$WORKON_ITERM_DYNAMIC_PROFILE_PATH" || {
+  echo "expected generated iTerm profiles to bind worktree subdirectories" >&2
+  exit 1
+}
+if grep -q '"/\\*/.worktrees/\\*"' "$WORKON_ITERM_DYNAMIC_PROFILE_PATH"; then
+  echo "expected generated iTerm profiles not to use broad worktree globs" >&2
+  exit 1
+fi
+
+watched_profile_dir="$tmpdir/DynamicProfiles"
+mkdir -p "$watched_profile_dir"
+WORKON_ITERM_DYNAMIC_PROFILE_PATH="$watched_profile_dir/workon-worktree.json"
+WORKON_ITERM_PROFILE_REGISTRY="$tmpdir/cache/iterm-worktrees.tsv"
+TMPDIR="$tmpdir/tmp"
+mkdir -p "$TMPDIR"
+workon__sync_iterm_profiles "$tmpdir" "repo"
+invalid_watched_files="$(find "$watched_profile_dir" -type f ! -name '*.json' -print)"
+[[ -z "$invalid_watched_files" ]] || {
+  echo "expected only JSON files in iTerm DynamicProfiles directory, got $invalid_watched_files" >&2
+  exit 1
+}
+watched_tmp_files="$(find "$watched_profile_dir" -type f -name 'workon-profiles.*' -print)"
+[[ -z "$watched_tmp_files" ]] || {
+  echo "expected temporary profile files not to be created in DynamicProfiles, got $watched_tmp_files" >&2
+  exit 1
+}
+[[ -f "$tmpdir/cache/iterm-worktrees.tsv" ]] || {
+  echo "expected profile registry to live outside DynamicProfiles" >&2
   exit 1
 }
 

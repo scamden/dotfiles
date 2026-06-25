@@ -34,6 +34,27 @@ git -C "$CAVEMAN_SKILLS_DIR" fetch --depth=1 origin "$CAVEMAN_SKILLS_REF"
 git -C "$CAVEMAN_SKILLS_DIR" checkout --detach "$CAVEMAN_SKILLS_REF"
 npx --yes skills@latest add "$CAVEMAN_SKILLS_DIR" -g -a codex -a claude-code -a cursor --skill caveman -y
 
+PONYTAIL_SKILLS_REF="64adbf9544581e57053a8d84a94e7e4471d40d95"
+PONYTAIL_SKILLS_DIR="$HOME/.cache/mise/dietrichgebert-ponytail"
+if [ ! -d "$PONYTAIL_SKILLS_DIR/.git" ]; then
+  git clone --filter=blob:none https://github.com/DietrichGebert/ponytail.git "$PONYTAIL_SKILLS_DIR"
+fi
+git -C "$PONYTAIL_SKILLS_DIR" fetch --depth=1 origin "$PONYTAIL_SKILLS_REF"
+git -C "$PONYTAIL_SKILLS_DIR" checkout --detach "$PONYTAIL_SKILLS_REF"
+npx --yes skills@latest add "$PONYTAIL_SKILLS_DIR" -g -a codex -a claude-code -a cursor --skill '*' -y
+
+if command -v codex >/dev/null 2>&1; then
+  codex plugin marketplace add DietrichGebert/ponytail >/dev/null
+  codex plugin marketplace upgrade ponytail >/dev/null
+  codex plugin add ponytail@ponytail >/dev/null
+fi
+
+if command -v claude >/dev/null 2>&1; then
+  claude plugin marketplace add DietrichGebert/ponytail >/dev/null
+  claude plugin install ponytail@ponytail --scope user >/dev/null
+  claude plugin update ponytail@ponytail --scope user >/dev/null
+fi
+
 npx --yes skills@latest add git@github.com:scamden/personal-agent-work.git -g -a codex -a claude-code -a cursor --skill '*' -y
 """
 

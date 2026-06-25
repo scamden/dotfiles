@@ -1,6 +1,10 @@
 # Worktree cockpit helpers for iTerm2.
 
 WORKON_HOME="${WORKON_HOME:-$HOME/.config/workon}"
+WORKON_ITERM_DYNAMIC_PROFILE_PATH="${WORKON_ITERM_DYNAMIC_PROFILE_PATH:-$HOME/Library/Application Support/iTerm2/DynamicProfiles/workon-worktree.json}"
+WORKON_CACHE_HOME="${WORKON_CACHE_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/workon}"
+WORKON_ITERM_PROFILE_REGISTRY="${WORKON_ITERM_PROFILE_REGISTRY:-$WORKON_CACHE_HOME/iterm-worktrees.tsv}"
+WORKON_ITERM_PARENT_PROFILE="${WORKON_ITERM_PARENT_PROFILE:-default}"
 
 typeset -ga WORKON_PALETTE=(
   "2b2238" "17313a" "30251f" "1e3326"
@@ -162,6 +166,142 @@ workon__color_for_identity() {
   printf '%s\n' "${WORKON_PALETTE[$index]}"
 }
 
+workon__json_string() {
+  local value="$1"
+  value="${value//\\/\\\\}"
+  value="${value//\"/\\\"}"
+  value="${value//$'\n'/\\n}"
+  printf '"%s"' "$value"
+}
+
+workon__hex_component() {
+  local hex="$1" start="$2"
+  awk -v component="$((16#${hex[$start,$((start + 1))]}))" 'BEGIN { printf "%.6f", component / 255 }'
+}
+
+workon__color_json() {
+  local color="$1" indent="$2"
+  print -r -- "$indent\"Color Space\": \"sRGB\","
+  print -r -- "$indent\"Red Component\": $(workon__hex_component "$color" 1),"
+  print -r -- "$indent\"Green Component\": $(workon__hex_component "$color" 3),"
+  print -r -- "$indent\"Blue Component\": $(workon__hex_component "$color" 5)"
+}
+
+workon__profile_guid() {
+  local identity="$1" hash
+  hash="$(printf '%s' "$identity" | shasum -a 1 | awk '{print $1}')"
+  printf '%s-%s-%s-%s-%s\n' "${hash[1,8]}" "${hash[9,12]}" "${hash[13,16]}" "${hash[17,20]}" "${hash[21,32]}"
+}
+
+workon__worktree_profile_rows() {
+  local repo_root="$1"
+  git -C "$repo_root" worktree list --porcelain 2>/dev/null \
+    | awk '
+      function emit() {
+        if (path == "") return
+        display = branch
+        sub(/^refs\/heads\//, "", display)
+        if (display == "") display = "detached-" substr(head, 1, 8)
+        print path "\t" display
+      }
+      /^worktree / {
+        emit()
+        path = substr($0, 10)
+        branch = ""
+        head = ""
+        next
+      }
+      /^HEAD / { head = substr($0, 6); next }
+      /^branch / { branch = substr($0, 8); next }
+      END { emit() }
+    '
+}
+
+workon__remember_iterm_profiles() {
+  local repo_root="$1" repo="$2" registry_dir tmp
+  registry_dir="${WORKON_ITERM_PROFILE_REGISTRY:h}"
+  mkdir -p "$registry_dir" || return 1
+  tmp="$(mktemp "$registry_dir/workon-registry.XXXXXX")" || return 1
+
+  {
+    [ ! -f "$WORKON_ITERM_PROFILE_REGISTRY" ] || cat "$WORKON_ITERM_PROFILE_REGISTRY"
+    workon__worktree_profile_rows "$repo_root" | while IFS=$'\t' read -r worktree_path branch; do
+      print -r -- "$repo"$'\t'"$branch"$'\t'"$worktree_path"
+    done
+  } | awk -F '\t' 'NF == 3 { rows[$3] = $0 } END { for (path in rows) print rows[path] }' \
+    | sort > "$tmp" || return 1
+
+  mv "$tmp" "$WORKON_ITERM_PROFILE_REGISTRY"
+}
+
+workon__print_iterm_profile() {
+  local repo="$1" branch="$2" worktree_path="$3" identity color tab_color guid
+  identity="$repo:$branch"
+  color="$(workon__color_for_identity "$identity")"
+  tab_color="$color"
+  guid="$(workon__profile_guid "$identity:$worktree_path")"
+
+  print -r -- "    {"
+  print -r -- "      \"Name\": $(workon__json_string "workon: $repo | $branch"),"
+  print -r -- "      \"Guid\": $(workon__json_string "$guid"),"
+  print -r -- "      \"Dynamic Profile Parent Name\": $(workon__json_string "$WORKON_ITERM_PARENT_PROFILE"),"
+  print -r -- "      \"Bound Hosts\": ["
+  print -r -- "        $(workon__json_string "$worktree_path"),"
+  print -r -- "        $(workon__json_string "$worktree_path/*")"
+  print -r -- "      ],"
+  print -r -- "      \"Background Color\": {"
+  workon__color_json "$color" "        "
+  print -r -- "      },"
+  print -r -- "      \"Badge Color\": {"
+  print -r -- "        \"Color Space\": \"sRGB\","
+  print -r -- "        \"Alpha Component\": 0.34,"
+  print -r -- "        \"Red Component\": 0.615686,"
+  print -r -- "        \"Green Component\": 0.717647,"
+  print -r -- "        \"Blue Component\": 0.784314"
+  print -r -- "      },"
+  print -r -- "      \"Use Tab Color\": true,"
+  print -r -- "      \"Tab Color\": {"
+  workon__color_json "$tab_color" "        "
+  print -r -- "      }"
+  print -r -- "    }"
+}
+
+workon__write_iterm_dynamic_profiles() {
+  local profile_dir tmp_base tmp first repo branch worktree_path
+  profile_dir="${WORKON_ITERM_DYNAMIC_PROFILE_PATH:h}"
+  mkdir -p "$profile_dir" || return 1
+  tmp_base="${TMPDIR:-/tmp}"
+  tmp_base="${tmp_base%/}"
+  tmp="$(mktemp "$tmp_base/workon-profiles.XXXXXX")" || return 1
+
+  {
+    print -r -- "{"
+    print -r -- "  \"Profiles\": ["
+    first=1
+    if [ -f "$WORKON_ITERM_PROFILE_REGISTRY" ]; then
+      while IFS=$'\t' read -r repo branch worktree_path; do
+        [ -n "$repo" ] && [ -n "$branch" ] && [ -n "$worktree_path" ] || continue
+        if [ "$first" -eq 0 ]; then
+          print -r -- ","
+        fi
+        workon__print_iterm_profile "$repo" "$branch" "$worktree_path"
+        first=0
+      done < "$WORKON_ITERM_PROFILE_REGISTRY"
+    fi
+    print -r -- ""
+    print -r -- "  ]"
+    print -r -- "}"
+  } > "$tmp" || return 1
+
+  mv "$tmp" "$WORKON_ITERM_DYNAMIC_PROFILE_PATH"
+}
+
+workon__sync_iterm_profiles() {
+  local repo_root="$1" repo="$2"
+  workon__remember_iterm_profiles "$repo_root" "$repo" || return 1
+  workon__write_iterm_dynamic_profiles
+}
+
 workon__mise_source_is_trusted() {
   local source_root="$1" trust_status
   [ -n "$source_root" ] || return 1
@@ -186,21 +326,12 @@ workon__set_iterm_badge() {
   printf '\033]1337;SetBadgeFormat=%s\a' "$encoded"
 }
 
-workon__set_iterm_color() {
-  local color="$1"
-  printf '\033]1337;SetColors=bg=%s\a' "$color"
-  printf '\033]6;1;bg;red;brightness;%d\a' "$((16#${color[1,2]}))"
-  printf '\033]6;1;bg;green;brightness;%d\a' "$((16#${color[3,4]}))"
-  printf '\033]6;1;bg;blue;brightness;%d\a' "$((16#${color[5,6]}))"
-}
-
 workon_refresh_visuals() {
   [ "${TERM_PROGRAM:-}" = "iTerm.app" ] || return 0
 
-  local actual_root actual_repo actual_branch rel identity color badge
+  local actual_root actual_repo actual_branch rel badge
   actual_root="$(workon__repo_root)" || {
     workon__set_iterm_badge "no git repo"
-    workon__set_iterm_color "262626"
     return 0
   }
 
@@ -210,9 +341,6 @@ workon_refresh_visuals() {
   rel="${rel#/}"
   [ -n "$rel" ] || rel="."
 
-  identity="$actual_repo:$actual_branch"
-  color="$(workon__color_for_identity "$identity")"
-
   if [ -n "${WORKON_ROOT:-}" ] && [ "$actual_root" != "$WORKON_ROOT" ]; then
     badge="MISMATCH | $actual_repo | $actual_branch"
   else
@@ -220,17 +348,6 @@ workon_refresh_visuals() {
   fi
 
   workon__set_iterm_badge "$badge"
-  workon__set_iterm_color "$color"
-}
-
-workon__schedule_visual_refresh() {
-  [ "${TERM_PROGRAM:-}" = "iTerm.app" ] || return 0
-  {
-    sleep 0.2
-    workon_refresh_visuals
-    sleep 0.8
-    workon_refresh_visuals
-  } >/dev/tty 2>/dev/null &!
 }
 
 workon__write_pane_script() {
@@ -379,6 +496,7 @@ workon() {
   root="$(workon__repo_root)" || return 1
   repo="$(workon__repo_name "$root")"
   worktree="$(workon__ensure_worktree "$branch")" || return 1
+  workon__sync_iterm_profiles "$root" "$repo" || return 1
   trusted_config_paths="$(workon__mise_trusted_config_paths "$root" "$worktree")"
   workon__open_iterm "$worktree" "$branch" "$repo" "$trusted_config_paths"
 }
@@ -466,6 +584,5 @@ if [ -n "${ZSH_VERSION:-}" ] && [ -n "${WORKON_ROOT:-}" ] && [ -z "${WORKON_HOOK
     add-zsh-hook precmd workon_refresh_visuals
     typeset -g WORKON_HOOKS_INSTALLED=1
     workon_refresh_visuals
-    workon__schedule_visual_refresh
   fi
 fi
