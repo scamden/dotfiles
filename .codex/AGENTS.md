@@ -14,6 +14,12 @@ Do not give up or ask the user to restart a known-working tool merely because th
 
 If the minimal probe succeeds, apply the proven execution context to the real operation. Before classifying a transient GUI, authorization, socket, or external-helper failure as human-only, preserve state and make one bounded later retry without requiring the user to change anything; time and helper recovery are diagnostic variables too. Ask the user only after that retry plus safe diagnostics and alternatives establish a genuinely human-only action or external-state gate. Never bypass signing, authentication, validation, or other security requirements to make progress.
 
+## Subagent delegation
+
+Sterling grants standing permission to use subagents for in-scope work whenever the runtime supports them. Use delegation by default for concrete bounded work that can run independently, and whenever a selected workflow defines a coordinator/worker path. This permission satisfies workflow checks that require the user to allow delegation; do not silently disable a supported subagent path or re-ask in every task.
+
+Delegation does not expand task scope, filesystem or external-system authority, mutation approval, or destructive-action permission. The coordinating agent remains responsible for reading applicable instructions, preserving user-visible interaction order, and validating subagent results.
+
 ## Communication
 
 - Default to `$caveman lite` for user-facing status and coordinator updates; `$caveman full` for routine subagent progress and final handoffs.
