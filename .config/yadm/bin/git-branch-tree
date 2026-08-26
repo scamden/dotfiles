@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+"""Print local branches as an ancestry tree, one branch per line.
+
+Each line is "<branch>\t<indented label>", so a picker can render the tree and still
+recover the branch name from the first field. The shape is derived from git history
+rather than a layout file, so there is nothing to keep in sync.
+
+A branch's parent is the nearest branch tip among its ancestors. Branches with no such
+ancestor hang off the trunk.
+"""
+
+import os
+import subprocess
+import sys
+
+BRANCH_LIMIT = int(os.environ.get("GIT_BRANCH_TREE_LIMIT", "40"))
+
+
+def git(*args):
+    result = subprocess.run(
+        ["git", *args], capture_output=True, text=True, check=False
+    )
+    if result.returncode != 0:
+        return ""
+    return result.stdout.strip()
+
+
+def branch_exists(branch):
+    return subprocess.run(
+        ["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch}"], check=False
+    ).returncode == 0
+
+
+def trunk_branch():
+    remote_head = git("symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD")
+    if remote_head:
+        return remote_head.removeprefix("origin/")
+    for branch in ("main", "master"):
+        if branch_exists(branch):
+            return branch
+    return ""
+
+
+def selected_branches(trunk):
+    """The trunk plus the most recently committed branches, newest first."""
+    listed = git(
+        "for-each-ref",
+        "--sort=-committerdate",
+        "--format=%(refname:short) %(objectname)",
+        "refs/heads",
+    )
+    branches = {}
+    for line in listed.splitlines():
+        name, _, commit = line.partition(" ")
+        if name and name != trunk:
+            branches[name] = commit
+        if len(branches) >= BRANCH_LIMIT:
+            break
+    return branches
+
+
+def parent_commits(trunk):
+    """Commits above the trunk, mapped to their parents. Everything else is trunk history."""
+    listed = git("rev-list", "--parents", "--topo-order", "--branches", "--not", trunk)
+    parents = {}
+    for line in listed.splitlines():
+        commit, *commit_parents = line.split()
+        parents[commit] = commit_parents
+    return parents
+
+
+def nearest_ancestor_branch(commit, parents, branch_at_commit):
+    """The closest branch tip strictly above this commit, or None for trunk history."""
+    seen = set()
+    frontier = list(parents.get(commit, []))
+    while frontier:
+        candidate = frontier.pop(0)
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        if candidate in branch_at_commit:
+            return branch_at_commit[candidate]
+        frontier.extend(parents.get(candidate, []))
+    return None
+
+
+def render(node, children, depth, current, out):
+    for branch in children.get(node, []):
+        marker = "* " if branch == current else "  "
+        out.append(f"{branch}\t{marker}{'  ' * depth}{branch}")
+        render(branch, children, depth + 1, current, out)
+
+
+def main():
+    trunk = trunk_branch()
+    if not trunk:
+        print("git-branch-tree: cannot determine trunk branch", file=sys.stderr)
+        return 1
+
+    branches = selected_branches(trunk)
+    parents = parent_commits(trunk)
+
+    # Only the branches being shown can be parents, so a hidden branch never swallows a subtree.
+    branch_at_commit = {commit: name for name, commit in branches.items()}
+
+    children = {}
+    for name, commit in branches.items():
+        parent = nearest_ancestor_branch(commit, parents, branch_at_commit)
+        children.setdefault(parent or trunk, []).append(name)
+
+    current = git("branch", "--show-current")
+    out = [f"{trunk}\t{'* ' if current == trunk else '  '}{trunk}"]
+    render(trunk, children, 1, current, out)
+    print("\n".join(out))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -75,14 +75,26 @@ workon__ensure_worktrees_ignored() {
   fi
 }
 
+# Picks a branch from the local ancestry tree. git-branch-tree prints "<branch>\t<label>",
+# so fzf can show the tree while the selection stays a plain branch name.
+choose_branch_tree() {
+  git-branch-tree \
+    | fzf --ansi \
+          --delimiter=$'\t' \
+          --with-nth=2.. \
+          --header="Choose branch (local tree)" \
+          --preview='git diff {1} --color=always' \
+    | cut -f1
+}
+
 workon__select_branch() {
   if [ -n "${1:-}" ]; then
     printf '%s\n' "$1"
     return
   fi
 
-  if typeset -f choose_machete_branch >/dev/null; then
-    choose_machete_branch
+  if (( $+commands[git-branch-tree] )); then
+    choose_branch_tree
     return
   fi
 
@@ -133,7 +145,7 @@ workon__ensure_worktree() {
 workon__layout_rows() {
   local repo="$1"
   case "$repo" in
-    platform)
+    platform|platform-monorepo)
       print -r -- "git|."
       print -r -- "dev server|."
       print -r -- "storybook|packages/ui"

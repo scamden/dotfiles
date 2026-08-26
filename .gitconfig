@@ -1,7 +1,7 @@
 [user]
 	name = Sterling Camden
 	email = rusty.camden@gmail.com
-	signingkey = ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCvwSUXfTu9LpZS11J5Ppsetn67OTTXDeuLFxZU5ZomBSTsAX6PQDGxuadLry0ekNXuPCkPr2zdVY5vjBO9D8qL+lLS6vg+jqjA/XdgdgIkh209M4luUdmm15aOZzZzm/Dz21SbNdWQG54r/6xzSVHzN7ZtZ7RuhPwNSAVMg3Rb2pO5ha3khF1mMeeZKV9w36jXMlGDhPmg9gBmhFTmhdoM7h9KXUx4K2VyjK4WoXYk3yfk133/BBMkamH0e3gU+Sd7EPeq1IfgBQCbsxf3PHCwrrTxrSxRezjlT4O3VWSmNIE9WeT5Y/49gFT48cUecX9YN8nagQfDG04KCa3gDmfa+OJ6QXgQbzeS4ntCRImREZNcbatALMSQrMbSrBhDXed0Ua9eq4Xf61Q07IFQjJkOqDN+QNySpgsbIdmKkIf0KDx3KamBCMjqzYrLC7yOZPmrBrEwbRYdIhOu7DcpcAa2Iw55NAZAuz95deuVWEc17GfOzBzUjrbHPlhbzSa90HW2rymaAWaL+wCkk2X38f1EBsE4EblQvJZhGxRGKYW+/vuZ+PHVH6gDASmm6H9DQvOa+6rgAN2FBmOa+EgkyXJf8mY4NxAIgqBVSUVGhaMMzOQjHbTmSfjZOppVGSuoVLMdWg4jkL+fHI+2w04hzET6XPfVgfo5C7abTKVVq1OiNQ==
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIABzeERqz0zzc4PKGbvIo4uWDovJz005qhj+Koy4Fzuc
 
 [includeIf "gitdir:~/valence/"]
     path = ~/.gitconfig_valence
@@ -118,7 +118,8 @@
     delete-squashed-branches = "!git checkout -q master && git for-each-ref refs/heads/ \"--format=%(refname:short)\" | while read branch; do mergeBase=$(git merge-base master $branch) && [[ $(git cherry master $(git commit-tree $(git rev-parse $branch^{tree}) -p $mergeBase -m _)) == \"-\"* ]] && git branch -D $branch; done"
     
     purge = "!git delete-squashed-branches; git delete-merged-branches; git fetch --prune --all"
-    cleanup = "!git checkout master; git m slide-out --removed-from-remote --delete; git m delete-unmanaged"
+    delete-gone-branches = "!git fetch --prune && git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads | while read branch track; do [ \"$track\" = '[gone]' ] && git branch -D \"$branch\"; done; true"
+    cleanup = "!git checkout master; git delete-gone-branches"
 
     pub = publish
 
@@ -170,7 +171,7 @@
   cmd = cursor --wait $MERGED
 [core]
 	# editor = code-insiders --wait
-	editor = cursor --wait
+	editor = zed --wait
 	#excludesfile = /Users/scamden/.gitignore_global
 [blame]
 	# ignoreRevsFile = .git-blame-ignore-revs
@@ -199,3 +200,9 @@
 	sslVerify = false
 [url "ssh://git@gitlab.internal.valence.nl/"]
 	insteadOf = https://gitlab.internal.valence.nl/
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential

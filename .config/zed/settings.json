@@ -1,0 +1,95 @@
+{
+  "tabs": {
+    "file_icons": false,
+    "git_status": false
+  },
+  "tab_bar": {
+    "show_tab_bar_buttons": true,
+    "show": true
+  },
+  "title_bar": {
+    "show_menus": false,
+    "show_branch_status_icon": false
+  },
+  "cli_default_open_behavior": "existing_window",
+  "project_panel": {
+    "dock": "left"
+  },
+  "file_finder": {
+    "include_ignored": true
+  },
+  "search": {
+    "include_ignored": true
+  },
+  "file_scan_inclusions": [
+    ".env*"
+  ],
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/.svn",
+    "**/.hg",
+    "**/.jj",
+    "**/CVS",
+    "**/.DS_Store",
+    "**/Thumbs.db",
+    "**/.classpath",
+    "**/.settings",
+    "**/node_modules"
+  ],
+  "agent_servers": {
+    "codex-acp": {
+      "type": "registry"
+    },
+    "claude-acp": {
+      "default_config_options": {
+        "mode": "plan"
+      },
+      "type": "registry"
+    }
+  },
+  "git": {
+    "inline_blame": {
+      "enabled": true,
+      "delay_ms": 200,
+      "show_commit_summary": true
+    }
+  },
+  "preview_tabs": {
+    "enable_preview_from_file_finder": false
+  },
+  "minimap": {
+    "show": "always"
+  },
+  "cursor_blink": true,
+  "autosave": "on_focus_change",
+  "buffer_font_size": 15.0,
+  "ui_font_size": 15,
+  "buffer_font_fallbacks": [
+    "Menlo",
+    "Monaco",
+    "Courier New",
+    "monospace"
+  ],
+  "buffer_font_family": "Menlo",
+  "file_types": {
+    "html": [
+      "*.ejs"
+    ],
+    "jsonc": [
+      "*.json"
+    ]
+  },
+  "linked_edits": true,
+  "show_edit_predictions": true,
+  "multi_cursor_modifier": "alt",
+  "hard_tabs": false,
+  "tab_size": 2,
+  "icon_theme": "Zed (Default)",
+  "theme": {
+    "mode": "dark",
+    "light": "One Light",
+    "dark": "One Dark"
+  },
+  "base_keymap": "VSCode",
+  "soft_wrap": "editor_width"
+}

@@ -33,6 +33,13 @@ git add file.txt
 git commit --quiet -m initial
 git branch feature-one
 git branch feature/path
+git remote add origin git@github.com:ValenceSecurity/platform-monorepo.git
+
+repo_name="$(workon__repo_name "$tmpdir")"
+[[ "$repo_name" == "platform-monorepo" ]] || {
+  echo "expected GitHub platform remote to resolve as platform-monorepo, got $repo_name" >&2
+  exit 1
+}
 
 expected="$tmpdir/.worktrees/feature-one"
 planned="$(workon__resolve_worktree feature-one)"
@@ -154,6 +161,15 @@ echo "$platform_layout" | grep -qxF "dev server|." || {
 }
 echo "$platform_layout" | grep -qxF "ui scratch|packages/ui" || {
   echo "expected platform ui scratch to start in packages/ui" >&2
+  exit 1
+}
+platform_monorepo_layout="$(workon__layout_rows platform-monorepo)"
+echo "$platform_monorepo_layout" | grep -qxF "dev server|." || {
+  echo "expected platform-monorepo dev server to start at repo root" >&2
+  exit 1
+}
+echo "$platform_monorepo_layout" | grep -qxF "ui scratch|packages/ui" || {
+  echo "expected platform-monorepo ui scratch to start in packages/ui" >&2
   exit 1
 }
 
@@ -291,5 +307,54 @@ if grep -q "«class Nwcm»" /tmp/workon-generated.applescript; then
   exit 1
 fi
 osacompile -o /tmp/workon-generated.scpt /tmp/workon-generated.applescript
+
+# git-branch-tree derives the branch tree from history, so a stack nests even when other
+# branches were committed to in between.
+tree_dir="$(mktemp -d /private/tmp/branch-tree-test.XXXXXX)"
+cd "$tree_dir"
+git init --quiet --initial-branch=master
+git config user.email test@example.com
+git config user.name Test
+git config commit.gpgsign false
+git commit --quiet --allow-empty -m trunk
+
+git checkout --quiet -b lower
+git commit --quiet --allow-empty -m lower
+
+git checkout --quiet -b upper
+git commit --quiet --allow-empty -m upper
+
+git checkout --quiet master
+git checkout --quiet -b unrelated
+git commit --quiet --allow-empty -m unrelated
+
+current_marker="$("${0:h}/../yadm/bin/git-branch-tree" | grep -E "\sunrelated$" | cut -f2)"
+[[ "$current_marker" == "*   unrelated" ]] || {
+  echo "expected the checked out branch to be marked with '*', got '$current_marker'" >&2
+  exit 1
+}
+
+git checkout --quiet master
+
+tree_output="$("${0:h}/../yadm/bin/git-branch-tree" | cut -f1 | tr '\n' ' ')"
+[[ "$tree_output" == "master lower upper unrelated " ]] || {
+  echo "expected branch tree order 'master lower upper unrelated', got '$tree_output'" >&2
+  exit 1
+}
+
+upper_label="$("${0:h}/../yadm/bin/git-branch-tree" | grep -E "\supper$" | cut -f2)"
+[[ "$upper_label" == "      upper" ]] || {
+  echo "expected 'upper' nested two levels under master, got '$upper_label'" >&2
+  exit 1
+}
+
+unrelated_label="$("${0:h}/../yadm/bin/git-branch-tree" | grep -E "\sunrelated$" | cut -f2)"
+[[ "$unrelated_label" == "    unrelated" ]] || {
+  echo "expected 'unrelated' directly under master, got '$unrelated_label'" >&2
+  exit 1
+}
+
+cd /
+rm -rf "$tree_dir"
 
 print "workon tests passed"
