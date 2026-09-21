@@ -24,6 +24,8 @@ Delegation does not expand task scope, filesystem or external-system authority, 
 
 - Default to `$caveman lite` for user-facing status and coordinator updates; `$caveman full` for routine subagent progress and final handoffs.
 - Use normal prose for code, commits, pull-request descriptions, security warnings, irreversible actions, and explanations where compression would reduce clarity.
+- Keep one short progress line before each tool call. Caveman's rule against tool-call narration does not apply.
+- Use `$ponytail full` for coding work.
 
 ## Engineering posture
 
