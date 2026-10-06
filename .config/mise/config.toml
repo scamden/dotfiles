@@ -16,7 +16,7 @@ trusted_config_paths = ["/Users/scamden/.codex/worktrees"]
 [tasks."agent:skills"]
 description = "Install agent skills for Codex, Claude Code, and Cursor"
 run = """
-MATT_POCOCK_SKILLS_REF="74ca5fe077456a0b3b2f5310cf9430999fd0b5fd"
+MATT_POCOCK_SKILLS_REF="24fe0ef7737efae15c87225755e9f6f5965e4888"
 MATT_POCOCK_SKILLS_DIR="$HOME/.cache/mise/mattpocock-skills"
 if [ ! -d "$MATT_POCOCK_SKILLS_DIR/.git" ]; then
   git clone --filter=blob:none https://github.com/mattpocock/skills.git "$MATT_POCOCK_SKILLS_DIR"
